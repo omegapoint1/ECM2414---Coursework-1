@@ -16,8 +16,8 @@ public class PackReader {
      * @throws IllegalArgumentException If the file contains invalid values or
      * wrong number of cards
      */
-    public static List<Integer> readPack(String path, int numPlayers) throws IOException {
-        List<Integer> pack = new ArrayList<>(); // store card values
+    public static List<Card> readPack(String path, int numPlayers) throws IOException {
+        List<Card> pack = new ArrayList<>(); // store card values
 
         try (Scanner scanner = new Scanner(new File(path))) {
             while (scanner.hasNextLine()) {
@@ -29,14 +29,14 @@ public class PackReader {
 
                 // parse integer
                 int value = Integer.parseInt(line);
-
+                Card tempCard = new Card(value);
                 // reject negatives
                 if (value < 0) 
                 {
                     throw new IllegalArgumentException("Negative value: " + value);
                 }
                 // add valid card to list
-                pack.add(value);
+                pack.add(tempCard);
             }
 
         } catch (FileNotFoundException e) {

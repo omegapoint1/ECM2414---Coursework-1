@@ -35,7 +35,7 @@ public class CardGame {
         String path = game.readFilePath();
 
         // TODO: get valid pack
-        List<Integer> pack = game.getValidPack(path, numPlayers);
+        List<Card> pack = game.getValidPack(path, numPlayers);
 
         // create decks and players
         Deck[] decks = createDecks(numPlayers);
@@ -77,7 +77,7 @@ public class CardGame {
         return scanner.nextLine().trim();
     }
 
-    private List<Integer> getValidPack(String path, int numPlayers) {
+    private List<Card> getValidPack(String path, int numPlayers) {
         while (true) {
             try {
                 return PackReader.readPack(path, numPlayers);
@@ -106,7 +106,7 @@ public class CardGame {
         return players;
     }
 
-    private static void distributeCards(List<Integer> pack, Player[] players, Deck[] decks) {
+    private static void distributeCards(List<Card> pack, Player[] players, Deck[] decks) {
         int numPlayers = players.length;
 
         // 1. Distribute 4 cards to each player (round-robin)
@@ -144,10 +144,10 @@ public class CardGame {
 
     private static void writeDeckOutputs(Deck[] decks) {
         for (Deck d : decks) {
-            List<Integer> contents = d.getContents();
+            List<Card> contents = d.getContents();
             try (PrintWriter pw = new PrintWriter("deck" + d.getDeckId() + "_output.txt")) {
                 pw.print("deck" + d.getDeckId() + " contents: ");
-                for (int c : contents) {
+                for (Card c : contents) {
                     pw.print(c + " ");
                 }
                 pw.println();
