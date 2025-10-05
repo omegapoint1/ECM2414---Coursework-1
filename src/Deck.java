@@ -10,15 +10,23 @@ public class Deck {
         this.deckId = deckId;
         this.cards = new LinkedList<>();
     }
-    public synchronized void addCard(Card card) {
-        // add card to the bottom of the queue
-        cards.add(card);
-    }
-
     public synchronized Card drawCard() {
-        // remove and return card from top of queue
+        while (cards.isEmpty()) {
+            try {
+                wait(); // wait until a card is added
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+        }
         return cards.poll();
     }
+
+    public synchronized void addCard(Card card) {
+        cards.add(card);
+        notifyAll(); // wake up threads waiting for a card
+    }
+
 
     public synchronized List<Card> getContents() {
         return new ArrayList<>(cards);
@@ -27,5 +35,4 @@ public class Deck {
     public int getDeckId() {
         return deckId;
     }
-
 }

@@ -60,16 +60,37 @@ public class Player implements Runnable {
         }
 
         while (!CardGame.isGameWon()) {
-            
-            Card drawnCard = leftDeck.drawCard();
-            hand.add(drawnCard);
+            Card drawnCard = null;
 
-            Card discardCard = chooseCardToDiscard();
-            rightDeck.addCard(discardCard);
+            // try to get card without holding both locks for long
+            synchronized (leftDeck) {
+                drawnCard = leftDeck.drawCard();
+            }
 
-            logAction("player " + playerId + " draws a " + drawnCard + " from deck " + leftDeck.getDeckId());
-            logAction("player " + playerId + " discards a " + discardCard + " to deck " + rightDeck.getDeckId());
-            logAction("player " + playerId + " current hand " + getHandSnapshot());
+            if (drawnCard == null) {
+                // no card available, wait a bit and retry
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ignored) {
+                }
+                continue;
+            }
+
+            // determine lock order for atomic draw+discard
+            Deck firstLock = leftDeck.getDeckId() < rightDeck.getDeckId() ? leftDeck : rightDeck;
+            Deck secondLock = leftDeck.getDeckId() < rightDeck.getDeckId() ? rightDeck : leftDeck;
+
+            synchronized (firstLock) {
+                synchronized (secondLock) {
+                    hand.add(drawnCard);
+                    Card discardCard = chooseCardToDiscard();
+                    rightDeck.addCard(discardCard);
+
+                    logAction("player " + playerId + " draws a " + drawnCard + " from deck " + leftDeck.getDeckId());
+                    logAction("player " + playerId + " discards a " + discardCard + " to deck " + rightDeck.getDeckId());
+                    logAction("player " + playerId + " current hand " + getHandSnapshot());
+                }
+            }
 
             synchronized (CardGame.class) {
                 if (!CardGame.isGameWon() && hasWinningHand()) {
@@ -81,9 +102,13 @@ public class Player implements Runnable {
             }
         }
 
+
         logAction("player " + playerId + " exits");
         logAction("player " + playerId + " final hand: " + getHandSnapshot());
     }
+
+
+
 
 
 
