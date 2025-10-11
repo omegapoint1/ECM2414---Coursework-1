@@ -14,34 +14,43 @@ public class CardGame {
 
     // shared flag for all threads to detect if the game has ended
     private static volatile boolean gameWon = false;
-    public static boolean isGameWon() {return gameWon;}
-    public static void setGameWon() {gameWon = true;}
+    private static volatile int winnerId = -1;
 
-    public static synchronized boolean tryDeclareWin() {
+    public static boolean isGameWon() {
+        return gameWon;
+    }
+
+    public static int getWinnerId() {
+        return winnerId;
+    }
+
+    public static synchronized boolean tryDeclareWin(int playerId) {
         if (!gameWon) {
             gameWon = true;
+            winnerId = playerId;
             return true; // caller successfully declared win
         }
         return false; // another player already won
     }
 
+
     public static void main(String[] args) {
         CardGame game = new CardGame();
 
-        // TODO: read number of players
+        // read number of players
         int numPlayers = game.readNumPlayers();
 
-        // TODO: read pack file path
+        // read pack file path
         String path = game.readFilePath();
 
-        // TODO: get valid pack
+        // get valid pack
         List<Card> pack = game.getValidPack(path, numPlayers);
 
         // create decks and players
         Deck[] decks = createDecks(numPlayers);
         Player[] players = createPlayers(numPlayers, decks);
 
-        // TODO: distribute cards to players and decks
+        // distribute cards to players and decks
         distributeCards(pack, players, decks);
 
         // start player threads
@@ -52,6 +61,7 @@ public class CardGame {
 
     }
 
+    
     private int readNumPlayers() {
         Scanner scanner = new Scanner(System.in);
         int n = 0;

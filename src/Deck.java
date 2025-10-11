@@ -10,27 +10,20 @@ public class Deck {
         this.deckId = deckId;
         this.cards = new LinkedList<>();
     }
+    
     public synchronized Card drawCard() {
-        while (cards.isEmpty()) {
-            try {
-                wait(); // wait until a card is added
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return null;
-            }
-        }
-        return cards.poll();
+        return cards.poll(); // returns null if empty
     }
 
     public synchronized void addCard(Card card) {
         cards.add(card);
-        notifyAll(); // wake up threads waiting for a card
+        // no notify/wait used anymore
     }
-
 
     public synchronized List<Card> getContents() {
         return new ArrayList<>(cards);
     }
+
 
     public int getDeckId() {
         return deckId;

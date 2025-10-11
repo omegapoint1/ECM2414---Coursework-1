@@ -49,63 +49,67 @@ public class Player implements Runnable {
     public void run() {
         logAction("player " + playerId + " initial hand " + getHandSnapshot());
 
-        // check initial win
-        synchronized (CardGame.class) {
-            if (!CardGame.isGameWon() && hasWinningHand()) {
-                CardGame.setGameWon();
-                System.out.println("Player " + playerId + " wins");
-                logAction("player " + playerId + " wins");
-                return;
-            }
+        // immediate win check
+        if (hasWinningHand() && CardGame.tryDeclareWin(playerId)) {
+            System.out.println("player " + playerId + " wins");
+            logAction("player " + playerId + " wins");
         }
 
         while (!CardGame.isGameWon()) {
             Card drawnCard = null;
+            Card discardCard;
 
-            // try to get card without holding both locks for long
-            synchronized (leftDeck) {
-                drawnCard = leftDeck.drawCard();
-            }
-
-            if (drawnCard == null) {
-                // no card available, wait a bit and retry
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ignored) {
-                }
-                continue;
-            }
-
-            // determine lock order for atomic draw+discard
+            // determine lock order to avoid deadlocks
             Deck firstLock = leftDeck.getDeckId() < rightDeck.getDeckId() ? leftDeck : rightDeck;
             Deck secondLock = leftDeck.getDeckId() < rightDeck.getDeckId() ? rightDeck : leftDeck;
 
             synchronized (firstLock) {
                 synchronized (secondLock) {
+                    if (CardGame.isGameWon()) {
+                        break;
+                    }
+
+                    drawnCard = leftDeck.drawCard();
+                    if (drawnCard == null) {
+                        Thread.yield(); // give other threads a chance to act
+                        continue; // deck empty, release locks and retry
+                    }
                     hand.add(drawnCard);
-                    Card discardCard = chooseCardToDiscard();
+                    discardCard = chooseCardToDiscard();
                     rightDeck.addCard(discardCard);
 
                     logAction("player " + playerId + " draws a " + drawnCard + " from deck " + leftDeck.getDeckId());
                     logAction("player " + playerId + " discards a " + discardCard + " to deck " + rightDeck.getDeckId());
-                    logAction("player " + playerId + " current hand " + getHandSnapshot());
+                    logAction("player " + playerId + " current hand is " + getHandSnapshot());
                 }
             }
 
-            synchronized (CardGame.class) {
-                if (!CardGame.isGameWon() && hasWinningHand()) {
-                    CardGame.setGameWon();
-                    System.out.println("Player " + playerId + " wins");
-                    logAction("player " + playerId + " wins");
-                    break;
-                }
+            // check win after atomic action
+            if (hasWinningHand() && CardGame.tryDeclareWin(playerId)) {
+                System.out.println("player " + playerId + " wins");
+                logAction("player " + playerId + " wins");
+                break;
             }
+
+            Thread.yield(); // allow other threads to run
         }
 
+        // write loser notification if needed
+        int winner = CardGame.getWinnerId();
+        if (winner != -1 && winner != playerId) {
+            logAction("player " + winner + " has informed player " + playerId + " that player " + winner + " has won");
+        }
 
         logAction("player " + playerId + " exits");
-        logAction("player " + playerId + " final hand: " + getHandSnapshot());
+        if (winner == playerId) {
+            logAction("player " + playerId + " final hand: " + getHandSnapshot());
+        } else {
+            logAction("player " + playerId + " hand: " + getHandSnapshot());
+        }
     }
+
+
+
 
 
 
