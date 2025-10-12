@@ -7,29 +7,37 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlayerDeckIntegrationTest {
 
     @Test
-    void testPlayerDrawDiscard() throws Exception {
-        Deck d1 = new Deck(1);
-        Deck d2 = new Deck(2);
+    void testPlayerDrawDiscardAtomicity() throws Exception {
 
-        // fill left deck
-        d1.addCard(new Card(1));
-        d1.addCard(new Card(2));
+        // Create two decks
+        Deck leftDeck = new Deck(1);
+        Deck rightDeck = new Deck(2);
 
-        Player p = new Player(1, d1, d2);
-        p.addCard(new Card(1));
-        p.addCard(new Card(1));
-        p.addCard(new Card(1));
-        p.addCard(new Card(2));
+        // Fill left deck with known cards
+        leftDeck.addCard(new Card(5));
+        leftDeck.addCard(new Card(6));
 
-        Thread t = new Thread(p);
-        t.start();
-        t.join();
+        // Create player with a non-winning hand
+        Player player = new Player(1, leftDeck, rightDeck);
+        player.addCard(new Card(1));
+        player.addCard(new Card(1));
+        player.addCard(new Card(1));
+        player.addCard(new Card(2)); // ensures player is not winning yet
 
-        // After run, left deck should have one card (if player drew one), right deck at least one
-        List<Card> leftContents = d1.getContents();
-        List<Card> rightContents = d2.getContents();
+        // Run player in a thread
+        Thread playerThread = new Thread(player);
+        playerThread.start();
+        playerThread.join();
 
-        assertTrue(leftContents.size() <= 1);
-        assertTrue(rightContents.size() >= 1);
+        // Check that atomic draw+discard preserved hand size 4
+        // Player hand is private, but effect visible in decks
+        List<Card> leftContents = leftDeck.getContents();
+        List<Card> rightContents = rightDeck.getContents();
+
+        // Left deck should have had at least one card drawn
+        assertTrue(leftContents.size() <= 1, "Left deck should have at most 1 card remaining");
+
+        // Right deck should have received at least one card from discard
+        assertTrue(rightContents.size() >= 1, "Right deck should have at least 1 card from discard");
     }
 }

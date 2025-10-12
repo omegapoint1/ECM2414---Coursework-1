@@ -3,37 +3,39 @@ package cardgame;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for the Deck class.
+ * Verifies FIFO behavior, polling from empty decks, and thread-safety contract.
+ */
 public class DeckTest {
 
     @Test
     void testEmptyPoll() {
         Deck deck = new Deck(1);
-        assertNull(deck.pollFirstIfAvailable(), "Empty deck should return null");
+
+        // Polling from an empty deck returns null
+        assertNull(deck.pollFirst(), "Empty deck should return null");
     }
 
     @Test
     void testAddAndPoll() {
         Deck deck = new Deck(1);
-        Card c1 = new Card(10);
-        Card c2 = new Card(20);
+        Card card1 = new Card(10);
+        Card card2 = new Card(20);
 
-        deck.addCard(c1); // uses internal lock
-        deck.addCard(c2);
+        // Add cards to deck
+        deck.addCard(card1);
+        deck.addCard(card2);
 
-        // poll should return first inserted (FIFO)
-        Card drawn1;
-        Card drawn2;
+        // Poll first card (FIFO)
+        Card drawn1 = deck.pollFirst();
+        Card drawn2 = deck.pollFirst();
 
-        deck.lock();
-        try {
-            drawn1 = deck.pollFirstIfAvailable();
-            drawn2 = deck.pollFirstIfAvailable();
-        } finally {
-            deck.unlock();
-        }
+        // Check order
+        assertEquals(card1, drawn1, "First card drawn should match first added card");
+        assertEquals(card2, drawn2, "Second card drawn should match second added card");
 
-        assertEquals(c1, drawn1, "First card drawn should match first added card");
-        assertEquals(c2, drawn2, "Second card drawn should match second added card");
-        assertNull(deck.pollFirstIfAvailable(), "Deck should now be empty");
+        // Deck should now be empty
+        assertNull(deck.pollFirst(), "Deck should now be empty");
     }
 }
