@@ -1,6 +1,10 @@
 package cardgame;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -38,4 +42,31 @@ public class DeckTest {
         // Deck should now be empty
         assertNull(deck.pollFirst(), "Deck should now be empty");
     }
+
+    @Test
+    void testGetDeckContents() {
+        Deck deck = new Deck(1);
+        Card card1 = new Card(6);
+        Card card2 = new Card(7);
+
+
+        deck.addCard(card1);
+        deck.addCard(card2);
+
+        List<Card> contents = deck.getContents();
+        List<Card> expectedContents = Arrays.asList(card1, card2);
+
+        // Check deck contents should match the expected contents
+        assertEquals(expectedContents, contents, "Method should return contents of the deck");
+
+        contents.clear();
+        List<Card> deckAfterClear = deck.getContents();
+        
+        // Checks that modifying the snapshot does not affect the contents of the deck
+        assertEquals(expectedContents, deckAfterClear, "Modifying snapshot should not affect deck contents");
+
+
+    }
+
+
 }
