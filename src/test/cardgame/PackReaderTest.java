@@ -2,7 +2,11 @@ package cardgame;
 
 import org.junit.jupiter.api.Test;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -54,4 +58,87 @@ class PackReaderTest {
 
         // Reading should fail due to negative value
         assertThrows(IllegalArgumentException.class,
-                () -> PackReader.readPack(tempFile.getAbsolutePath(), 1),
+                () -> PackReader.readPack(tempFile.getAbsolutePath(), 1));
+
+    }
+
+     @Test
+    void testReadPackValidNormalCase() throws IOException {
+        // Arrange: create a temporary file with 16 valid integers (0-7 repeated twice)
+        File tempFile = Files.createTempFile("pack", ".txt").toFile();
+        tempFile.deleteOnExit(); // ensure cleanup
+
+        try (PrintWriter writer = new PrintWriter(tempFile)) {
+            for (int i = 0; i < 2; i++) {        // 2 players → 16 cards (8 per player)
+                for (int j = 0; j < 8; j++) {
+                    writer.println(j);
+                }
+            }
+        }
+
+        // Reading the pack
+        List<Card> cards = PackReader.readPack(tempFile.getAbsolutePath(), 2);
+
+        // list should contain exactly 16 cards with correct values
+        assertEquals(16, cards.size(), "Pack should contain 16 cards");
+
+        for (int i = 0; i < 16; i++) {
+            int expectedValue = i % 8; // 0-7 repeated
+            assertEquals(expectedValue, cards.get(i).getValue(),
+                    "Card at index " + i + " should have value " + expectedValue);
+        }
+    }
+
+     @Test
+    void testReadPackThrowsForNegativeValue() throws IOException {
+        // creating a temporary file with a negative number
+        File tempFile = Files.createTempFile("negativePack", ".txt").toFile();
+        tempFile.deleteOnExit();
+
+        try (PrintWriter writer = new PrintWriter(tempFile)) {
+            writer.println(-5); // invalid negative card
+            // Fill remaining cards to meet 8*numPlayers requirement
+            for (int i = 0; i < 7; i++) {
+                writer.println(i);
+            }
+        }
+
+        // should throw IllegalArgumentException
+        assertThrows(IllegalArgumentException.class, () -> PackReader.readPack(tempFile.getAbsolutePath(), 1));
+    }
+
+    @Test
+    void testReadPackThrowsForWrongNumberOfCards() throws IOException {
+        // Creating a temporary file with fewer cards than required
+        File tempFile = Files.createTempFile("wrongSizePack", ".txt").toFile();
+        tempFile.deleteOnExit();
+
+        int numPlayers = 2;       // expecting 16 cards (2*8)
+        int actualCards = 10;     // fewer than required
+
+        try (PrintWriter writer = new PrintWriter(tempFile)) {
+            for (int i = 0; i < actualCards; i++) {
+                writer.println(i);  // write integers 0..9
+            }
+        }
+
+        // should throw IllegalArgumentException due to invalid pack size
+        assertThrows(IllegalArgumentException.class, () -> PackReader.readPack(tempFile.getAbsolutePath(), numPlayers)
+        );
+    }
+
+     @Test
+    void testReadPackThrowsFileNotFound() {
+        // Using a file path that doesn't exist
+        String nonExistentPath = "this_file_does_not_exist.txt";
+        int numPlayers = 2;
+
+        // should throw FileNotFoundException
+        assertThrows(FileNotFoundException.class, () -> PackReader.readPack(nonExistentPath, numPlayers));
+    }
+
+
+
+
+
+}
