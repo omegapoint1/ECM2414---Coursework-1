@@ -61,7 +61,7 @@ public class Player implements Runnable {
     /**
      * Returns a snapshot of the current hand as a space-separated string.
      */
-    private String handSnapshot() {
+    public String handSnapshot() {
 
         StringBuilder sb = new StringBuilder();
 

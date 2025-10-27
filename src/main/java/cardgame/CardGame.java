@@ -87,7 +87,7 @@ public class CardGame {
     /** Reads and validates the number of players from console input. */
     private static int readNumPlayers(Scanner scanner) {
         while (true) {
-            System.out.print("Enter number of players: ");
+            System.out.print("Please enter the number of players:");
             String input = scanner.nextLine();
             try {
                 int n = Integer.parseInt(input.trim());
@@ -102,7 +102,7 @@ public class CardGame {
     /** Reads a non-empty file path from console input. */
     private static String readFilePath(Scanner scanner) {
         while (true) {
-            System.out.print("Enter pack file path: ");
+            System.out.print("Please enter location of pack to load:");
             String p = scanner.nextLine().trim();
             if (!p.isEmpty()) return p;
             System.out.println("Path cannot be empty.");
