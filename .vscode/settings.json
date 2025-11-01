@@ -1,8 +1,0 @@
-{
-    "java.project.sourcePaths": [
-        "src/test/java",
-        "src/test",
-        "src/main/java",
-        "lib"
-    ]
-}
