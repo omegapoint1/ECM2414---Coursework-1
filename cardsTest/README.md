@@ -25,7 +25,7 @@ Environment / Versions
    `mvn clean test`
 
 5. To run a specific test class:
-   `mvn -Dtest=cardgame.FILENAME test`
+   `mvn "-Dtest=cardgame.FILENAME" test`
 
 6. Any test results will appear in the terminal and are saved in:
    `target/surefire-reports`
@@ -59,26 +59,6 @@ Environment / Versions
    
 4. The player logs and deck logs will be saved as text files in the same directory.
 
-
---------------------------------------------
-   How to run the test suite (cardsTest.zip)
---------------------------------------------
-
-1. Extract cardsTest.zip into a directory.
-
-3. Make sure Maven is installed. Check with:
-   `mvn -v`
-
-4. Open a terminal in the extracted directory containing pom.xml .
-
-5. To compile and run all tests:
-   `mvn clean test`
-
-6. To run a specific test class:
-   `mvn -Dtest=cardgame.FILENAME test`
-
-7. Any test results will appear in the terminal and are saved in:
-   `target/surefire-reports`
 
 
 --------------------------------------------
