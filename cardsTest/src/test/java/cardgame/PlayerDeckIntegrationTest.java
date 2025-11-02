@@ -15,27 +15,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class PlayerDeckIntegrationTest {
 
+    // Clean up leftover output files after each test
     private static final int NUM_PLAYERS = 2;
 	@AfterEach
-	void cleanEnvironment() throws IOException {
-		Files.deleteIfExists(Path.of("player1_output.txt"));
-		Files.deleteIfExists(Path.of("player2_output.txt"));
-		Files.deleteIfExists(Path.of("deck1_output.txt"));
-		Files.deleteIfExists(Path.of("deck2_output.txt"));
-	}
-    @AfterEach
-    void cleanUpFiles() {
+    void cleanUpFiles() throws IOException {
         for (int i = 1; i <= NUM_PLAYERS; i++) {
-            File playerFile = new File("player" + i + "_output.txt");
-            if (playerFile.exists()) playerFile.delete();
-            File deckFile = new File("deck" + i + "_output.txt");
-            if (deckFile.exists()) deckFile.delete();
+            Files.deleteIfExists(Path.of("player" + i + "_output.txt"));
+            Files.deleteIfExists(Path.of("deck" + i + "_output.txt"));
         }
     }
 
     @Test
     void testDrawAndDiscard() throws Exception {
-        // Create pack file explicitly
+        // Create pack file
         Path packFile = Files.createTempFile("pack", ".txt");
         ArrayList<String> lines = new ArrayList<>();
         lines.add("0"); lines.add("1"); lines.add("2"); lines.add("3");

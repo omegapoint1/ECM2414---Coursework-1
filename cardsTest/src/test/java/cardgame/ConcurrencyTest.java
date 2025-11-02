@@ -19,19 +19,10 @@ class ConcurrencyTest {
 
 	// Remove standard output files after each test
 	@AfterEach
-	void cleanEnvironment() throws IOException {
-		Files.deleteIfExists(Path.of("player1_output.txt"));
-		Files.deleteIfExists(Path.of("player2_output.txt"));
-		Files.deleteIfExists(Path.of("deck1_output.txt"));
-		Files.deleteIfExists(Path.of("deck2_output.txt"));
-	}
-
-	// Ensure leftover files are cleaned up even if test fails early
-	@AfterEach
-	void cleanUpFiles() {
+	void cleanUpFiles() throws IOException {
 		for (int i = 1; i <= NUM_PLAYERS; i++) {
-			File f = new File("player" + i + "_output.txt");
-			if (f.exists()) f.delete();
+			Files.deleteIfExists(Path.of("player" + i + "_output.txt"));
+			Files.deleteIfExists(Path.of("deck" + i + "_output.txt"));
 		}
 	}
 
